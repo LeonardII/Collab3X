@@ -1,0 +1,18 @@
+{
+  "name": "collab3d",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.2.0",
+    "express": "^4.17.1",
+    "rethinkdb": "^2.4.2",
+    "three": "^0.126.0"
+  }
+}

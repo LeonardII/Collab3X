@@ -4,3 +4,5 @@
 4. In Collab3X directory: 
 5. ```npm install```
 6. ```npm start```
+
+Now you can view all points at localhost:3000/points

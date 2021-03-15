@@ -7,9 +7,53 @@
             margin: 0px;
         }
     </style>
+
+<script type="text/javascript">
+		
+    var webSocket;
+    var points;
+    var projectId;
+
+    function connectToWebSocketServer() {
+        if ("WebSocket" in window) {
+            webSocket = new WebSocket('ws://' + window.location.href.split('/')[2]);
+            webSocket.onopen = function() {
+                monitorProject("Stadt");
+            };
+            webSocket.onmessage = function (evt)  { 
+                console.log('Message received: ' + evt.data);
+                var message = JSON.parse(evt.data);
+            };
+            webSocket.onclose = function() { 
+                console.log('Websocket closed.');
+            };
+        }
+        else {
+            alert("WebSocket not supported browser.");
+        }
+    }
+    function monitorProject(id) {
+        //load 3d
+        //load points
+        projectId = id;
+        var message = JSON.stringify({type:"monitorProject",project:projectId});
+        console.log('Sending message to monitor game ' + projectId + ': ' + message);
+        webSocket.send(message);
+    }
+
+    function addPointToDataBase(x, y, z, id) {
+        var message = JSON.stringify({type:"addPoint",x:x, y:y, z:z, project:id});
+        console.log('Sending message to add point to Project ' + message);
+        webSocket.send(message);
+    }
+
+    function init() {
+        connectToWebSocketServer();
+    }
+</script>
 </head>
 
-<body>
+<body onLoad="init()">
     <script type="module" src="client.js"></script>
 </body>
 

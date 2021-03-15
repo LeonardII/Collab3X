@@ -125,6 +125,7 @@ function onDocumentMouseDown( event ) {
         marker.position.set(cursor.position.x, cursor.position.y, cursor.position.z);
         markers.push(marker);
         scene.add( marker );
+        addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
 }
 
 function onDocumentMouseMove( event ) {

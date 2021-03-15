@@ -1,0 +1,42 @@
+2021-03-09T18:18:29.219204628 0.040708s notice: Recursively removing directory /home/leonard/Projekte/DHBW/Collab3D/rethinkdb_data/tmp
+2021-03-09T18:18:29.224263590 0.045772s notice: Initializing directory /home/leonard/Projekte/DHBW/Collab3D/rethinkdb_data
+2021-03-09T18:18:29.224422529 0.045925s info: Creating a default database for your convenience. (This is because you ran 'rethinkdb' without 'create', 'serve', or '--join', and the directory '/home/leonard/Projekte/DHBW/Collab3D/rethinkdb_data' did not already exist or is empty.)
+2021-03-09T18:18:29.224482602 0.045985s notice: Running rethinkdb 2.4.1-dirty (CLANG 11.0.1 )...
+2021-03-09T18:18:29.236380774 0.057885s notice: Running on Linux 5.4.80-2-MANJARO x86_64
+2021-03-09T18:18:29.236468787 0.057971s notice: Loading data from directory /home/leonard/Projekte/DHBW/Collab3D/rethinkdb_data
+2021-03-09T18:18:29.280057439 0.101560s info: Automatically using cache size of 1275 MB
+2021-03-09T18:18:29.286261365 0.107765s notice: Listening for intracluster connections on port 29015
+2021-03-09T18:18:29.297657142 0.119160s notice: Listening for client driver connections on port 28015
+2021-03-09T18:18:29.297803308 0.119305s notice: Listening for administrative HTTP connections on port 8080
+2021-03-09T18:18:29.297812141 0.119314s notice: Listening on cluster addresses: 127.0.0.1, ::1
+2021-03-09T18:18:29.297819005 0.119321s notice: Listening on driver addresses: 127.0.0.1, ::1
+2021-03-09T18:18:29.297835297 0.119337s notice: Listening on http addresses: 127.0.0.1, ::1
+2021-03-09T18:18:29.297848667 0.119350s notice: To fully expose RethinkDB on the network, bind to all addresses by running rethinkdb with the `--bind all` command line option.
+2021-03-09T18:18:29.297861099 0.119363s notice: Server ready, "leonard_Notebook_oyv" ea4a5523-8859-4aa6-892d-bc8186a38380
+2021-03-09T18:22:18.693982485 229.515485s info: Table f842592c-6259-49b2-80b7-477826499009: Starting a new Raft election for term 1.
+2021-03-09T18:22:18.694311805 229.515814s info: Table f842592c-6259-49b2-80b7-477826499009: Added replica on this server.
+2021-03-09T18:22:18.698233165 229.519736s info: Table f842592c-6259-49b2-80b7-477826499009: This server is Raft leader for term 1. Latest log index is 0.
+2021-03-09T18:22:44.639230995 255.460734s notice: Server got SIGINT from pid 0, uid 0; shutting down...
+2021-03-09T18:22:44.639577462 255.461080s notice: Shutting down client connections...
+2021-03-09T18:22:44.639706887 255.461209s notice: All client connections closed.
+2021-03-09T18:22:44.639719453 255.461221s notice: Shutting down storage engine... (This may take a while if you had a lot of unflushed data in the writeback cache.)
+2021-03-09T18:22:44.654460671 255.475964s notice: Storage engine shut down.
+2021-03-09T18:22:47.691008413 0.028771s notice: Running rethinkdb 2.4.1-dirty (CLANG 11.0.1 )...
+2021-03-09T18:22:47.700866227 0.038623s notice: Running on Linux 5.4.80-2-MANJARO x86_64
+2021-03-09T18:22:47.700987654 0.038742s notice: Loading data from directory /home/leonard/Projekte/DHBW/Collab3D/rethinkdb_data
+2021-03-09T18:22:47.749261063 0.087016s info: Automatically using cache size of 1201 MB
+2021-03-09T18:22:47.751363408 0.089119s notice: Listening for intracluster connections on port 29015
+2021-03-09T18:22:47.780782803 0.118538s notice: Listening for client driver connections on port 28015
+2021-03-09T18:22:47.780916409 0.118671s notice: Listening for administrative HTTP connections on port 8080
+2021-03-09T18:22:47.780928057 0.118682s notice: Listening on cluster addresses: 127.0.0.1, ::1
+2021-03-09T18:22:47.780937308 0.118691s notice: Listening on driver addresses: 127.0.0.1, ::1
+2021-03-09T18:22:47.780945250 0.118699s notice: Listening on http addresses: 127.0.0.1, ::1
+2021-03-09T18:22:47.780954154 0.118708s notice: To fully expose RethinkDB on the network, bind to all addresses by running rethinkdb with the `--bind all` command line option.
+2021-03-09T18:22:47.780962623 0.118717s notice: Server ready, "leonard_Notebook_oyv" ea4a5523-8859-4aa6-892d-bc8186a38380
+2021-03-09T18:22:49.371261207 1.709017s info: Table f842592c-6259-49b2-80b7-477826499009: Starting a new Raft election for term 2.
+2021-03-09T18:22:49.379137628 1.716893s info: Table f842592c-6259-49b2-80b7-477826499009: This server is Raft leader for term 2. Latest log index is 3.
+2021-03-09T18:34:27.548048624 699.885804s notice: Server got SIGINT from pid 0, uid 0; shutting down...
+2021-03-09T18:34:27.548373567 699.886128s notice: Shutting down client connections...
+2021-03-09T18:34:27.548576659 699.886331s notice: All client connections closed.
+2021-03-09T18:34:27.548589904 699.886344s notice: Shutting down storage engine... (This may take a while if you had a lot of unflushed data in the writeback cache.)
+2021-03-09T18:34:27.555311103 699.893066s notice: Storage engine shut down.

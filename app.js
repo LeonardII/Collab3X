@@ -1,7 +1,14 @@
 const async = require('async')
 const express = require('express')
 const app = express()
-const path = require('path')
+const path = require('path');
+const { start } = require('repl');
+var databaseController = require('./controllers/dataBaseController');
+var gameController = require('./controllers/gameController');
+var WebSocketServer = require('websocket').server;
+
+var http = require('http').Server(app);
+var webSocketServer;
 
 var config = require(__dirname+"/config.js");
 const r = require('rethinkdb')
@@ -12,40 +19,33 @@ app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/example
 
 app.route('/points').get(get);
 
-app.route('/book')
-  .get(function(req, res) {
-    res.send('Get a random book');
-  })
-  .post(function(req, res) {
-    res.send('Add a book');
-  })
-  .put(function(req, res) {
-    res.send('Update the book');
-  });
-
-
 //If we reach this middleware the route could not be handled and must be unknown.
 app.use(handle404);
 //Generic error handling middleware.
 app.use(handleError);
 
 function get(req, res, next) {
-  console.log("moinmeister");
   r.table('points').run(req.app._rdbConn, function(err, cursor) {
     if(err) {
       return next(err);
     }
-
     //Retrieve all the todos in an array.
     cursor.toArray(function(err, result) {
       if(err) {
         return next(err);
       }
-
       res.json(result);
     });
   });
 }
+/*
+function getPoints(){
+  r.table('points').changes().then(function (cursor) {
+    cursor.each(function(err, record) {
+      console.log(record);
+    });
+  });
+}*/
 
 function startExpress(connection) {
   app._rdbConn = connection;
@@ -70,62 +70,43 @@ function handle404(req, res, next) {
   res.status(404).end('not found');
 }
 
-/*
- * Connect to rethinkdb, create the needed tables/indexes and then start express.
- * Create tables/indexes then start express
- */
-async.waterfall([
-  function connect(callback) {
-    r.connect(config.rethinkdb, callback);
-  },
-  function createDatabase(connection, callback) {
-    //Create the database if needed.
-    r.dbList().contains(config.rethinkdb.db).do(function(containsDb) {
-      return r.branch(
-        containsDb,
-        {created: 0},
-        r.dbCreate(config.rethinkdb.db)
-      );
-    }).run(connection, function(err) {
-      callback(err, connection);
+//startExpress(connection);
+(function(app) {
+	
+	// connect to RethinkDB
+	// create games database and game table if necessary
+    r.connect(config.rethinkdb, function(err, conn) {
+        if (err) {
+            console.log('Could not open a connection to initialize the database: ' + err.message);
+        }
+        else {
+            console.log('Connected.');
+            app.set('rethinkdb.conn', conn);
+            databaseController.createDatabase(conn, config.rethinkdb.db)
+                .then(function() {
+                    return databaseController.createTable(conn, 'points');
+                })
+				.then(function() {
+					return gameController.monitorAllPoints(conn);
+				})
+                .catch(function(err) {
+                    console.log('Error connecting to RethinkDB: ' + err);
+                });
+        }
     });
-  },
-  function createTable(connection, callback) {
-    //Create the table if needed.
-    r.tableList().contains('todos').do(function(containsTable) {
-      return r.branch(
-        containsTable,
-        {created: 0},
-        r.tableCreate('todos')
-      );
-    }).run(connection, function(err) {
-      callback(err, connection);
-    });
-  },
-  function createIndex(connection, callback) {
-    //Create the index if needed.
-    r.table('todos').indexList().contains('createdAt').do(function(hasIndex) {
-      return r.branch(
-        hasIndex,
-        {created: 0},
-        r.table('todos').indexCreate('createdAt')
-      );
-    }).run(connection, function(err) {
-      callback(err, connection);
-    });
-  },
-  function waitForIndex(connection, callback) {
-    //Wait for the index to be ready.
-    r.table('todos').indexWait('createdAt').run(connection, function(err, result) {
-      callback(err, connection);
-    });
-  }
-], function(err, connection) {
-  if(err) {
-    console.error(err);
-    process.exit(1);
-    return;
-  }
+	
+	// attach web socket server
+	webSocketServer = new WebSocketServer({httpServer: http, autoAcceptConnections: false});
+	webSocketServer.on('request', function(request) {
+		// route connection to webSocketController
+		gameController.onWebSocketConnection(app, request);
+	});
+})(app);
 
-  startExpress(connection);
+// serve the files out of ./public as our main files
+app.use(express.static(__dirname + '/public'));
+
+// start server on the specified port and binding host
+http.listen(config.express.port, '0.0.0.0', function() {
+  console.log("Server started.")
 });

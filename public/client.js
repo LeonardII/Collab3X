@@ -7,6 +7,48 @@ const mouse = new THREE.Vector2();
 
 const markerGeometry = new THREE.SphereGeometry( 10, 20, 20);
 
+//________________Websocket stuff______________________
+var webSocket;
+var projectId;
+
+function connectToWebSocketServer() {
+    if ("WebSocket" in window) {
+        webSocket = new WebSocket('ws://' + window.location.href.split('/')[2]);
+        webSocket.onopen = function() {
+            monitorProject("Stadt");
+        };
+        webSocket.onmessage = function (evt)  { 
+            var message = JSON.parse(evt.data);
+            console.log(message);
+            addMarkerGeometry(message.x,message.y,message.z);
+        };
+        webSocket.onclose = function() { 
+            console.log('Websocket closed.');
+        };
+    }
+    else {
+        alert("WebSocket not supported browser.");
+    }
+}
+function monitorProject(id) {
+    //load 3d
+    //load points
+    projectId = id;
+    var message = JSON.stringify({action:"monitorProject",project:projectId});
+    console.log('Sending message to monitor game ' + projectId + ': ' + message);
+    webSocket.send(message);
+}
+
+function addPointToDataBase(x, y, z, id) {
+    var message = JSON.stringify({action:"addPoint",x:x, y:y, z:z, project:id});
+    console.log('Sending message to add point to Project ' + message);
+    webSocket.send(message);
+}
+
+connectToWebSocketServer();
+
+
+//_________________3D stuff________________
 init();
 //render(); // remove when using next line for animation loop (requestAnimationFrame)
 animate();
@@ -121,10 +163,7 @@ function animate() {
 
 function onDocumentMouseDown( event ) {
         event.preventDefault();
-        let marker = new THREE.Mesh( markerGeometry, new THREE.MeshNormalMaterial() );
-        marker.position.set(cursor.position.x, cursor.position.y, cursor.position.z);
-        markers.push(marker);
-        scene.add( marker );
+        addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
         addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
 }
 
@@ -132,6 +171,20 @@ function onDocumentMouseMove( event ) {
         event.preventDefault();
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+}
+
+function clearMarkers(){
+        for(marker in markers) {
+                scene.remove(marker);
+        }
+        markers.clear();
+}
+
+function addMarkerGeometry(x,y,z) {
+        let marker = new THREE.Mesh( markerGeometry, new THREE.MeshNormalMaterial() );
+        marker.position.set(x,y,z);
+        markers.push(marker);
+        scene.add( marker );
 }
 
 function render() {

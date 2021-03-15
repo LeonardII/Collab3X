@@ -11,29 +11,30 @@ module.exports.getPoints = function(app) {
 	});
 };
 
-module.exports.monitorAllPoints = function(conn) {
-	return r.table('points').changes().run(conn)
-		.then(function(cursor) {
-			changesCursor = cursor;
-			cursor.each(function(err, row) {
-				if (err) {
-					throw err;
-				}
-				else {
-					// send every game to every client
-					var gameJson = JSON.stringify(row.new_val, null, 2);
-					for (var i=0; i<clients.length; i++) {
-						if (true) {
-							clients[i].connection.sendUTF(gameJson);
-						}
-					}
-				}
-			});
-		})
-		.catch(function(err) {
-			console.log('Error monitoring all games: ' + err);
-		});
-};
+// module.exports.monitorAllPoints = function(conn) {
+// 	return r.table('points').changes().run(conn)
+// 		.then(function(cursor) {
+// 			changesCursor = cursor;
+// 			cursor.each(function(err, row) {
+// 				if (err) {
+// 					throw err;
+// 				}
+// 				else {
+// 					// send every point to every client
+// 					var pointJson = JSON.stringify(row.new_val, null, 2);
+// 					for (var i=0; i<clients.length; i++) {
+// 						console.log(clients[i].project, pointJson.project);
+// 						if (clients[i].project = pointJson.project) {
+// 							clients[i].connection.sendUTF(pointJson);
+// 						}
+// 					}
+// 				}
+// 			});
+// 		})
+// 		.catch(function(err) {
+// 			console.log('Error monitoring all points: ' + err);
+// 		});
+// };
 
 module.exports.onWebSocketConnection = function(app, request) {
     console.log(new Date() + ' WebSocket connection accepted.');
@@ -55,11 +56,11 @@ module.exports.onWebSocketConnection = function(app, request) {
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {
-    if (message.type == "monitorProject") {
+    if (message.action == "monitorProject") {
 		console.log(new Date() + ' Request received to monitor project ' + message.project + '.');
 		client.monitorPointsByProject(message.project, app);
 	}
-	if (message.type == "addPoint") {
+	if (message.action == "addPoint") {
 		console.log(new Date() + ' Request received to add point ' + message.project + '.');
 		var point = {x: message.x, y:message.y, z:message.z};
 		client.addPointToProject(message.project, point, app);

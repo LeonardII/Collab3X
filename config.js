@@ -6,6 +6,6 @@ module.exports = {
       db: 'CollabDB'
     },
     express: {
-       port: 3000
+       port: 3001
     }
   };

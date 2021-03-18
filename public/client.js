@@ -77,6 +77,7 @@ function init() {
         
         document.addEventListener( 'mousemove', onDocumentMouseMove );
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
+        document.addEventListener( 'drop', onDocumentDrop );
 
         //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
 
@@ -171,6 +172,11 @@ function onDocumentMouseMove( event ) {
         event.preventDefault();
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+}
+
+function onDocumentDrop( event ) {
+        event.preventDefault();
+        console.log(dataTransfer.files.count(), " files received");
 }
 
 function clearMarkers(){

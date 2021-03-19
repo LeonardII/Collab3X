@@ -24,7 +24,7 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 					// send the new point value to the client
 					var pointJson = JSON.stringify(row.new_val, null, 2);
 					webSocketConnection.sendUTF(pointJson);
-					console.log("db changed", pointJson)
+					//console.log("db changed", pointJson)
 				}
 			});
 		})

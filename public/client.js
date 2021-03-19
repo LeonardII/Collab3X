@@ -1,11 +1,14 @@
+
 import * as THREE from '/build/three.module.js';
 import {OrbitControls} from '/jsm/controls/OrbitControls.js';
+import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 //import Stats from '/jsm/libs/stats.module.js';
 
 let camera, controls, scene, renderer, rayCaster, cursor, markers, intersectionObjects;
 const mouse = new THREE.Vector2();
 
 const markerGeometry = new THREE.SphereGeometry( 10, 20, 20);
+const loader = new OBJLoader();
 
 //________________Websocket stuff______________________
 var webSocket;
@@ -97,25 +100,7 @@ function init() {
         controls.maxPolarAngle = Math.PI / 2;
 
         // world
-
-        const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-        geometry.translate( 0, 0.5, 0 );
-        const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
-
-        for ( let i = 0; i < 500; i ++ ) {
-
-                const mesh = new THREE.Mesh( geometry, material );
-                mesh.position.x = Math.random() * 1600 - 800;
-                mesh.position.y = 0;
-                mesh.position.z = Math.random() * 1600 - 800;
-                mesh.scale.x = 20;
-                mesh.scale.y = Math.random() * 80 + 10;
-                mesh.scale.z = 20;
-                mesh.updateMatrix();
-                mesh.matrixAutoUpdate = false;
-                scene.add( mesh );
-                intersectionObjects.push(mesh);
-        }
+        loadObj("haus");
         const planeGeometry = new THREE.PlaneGeometry( 10000, 10000 );
         const plane = new THREE.Mesh( planeGeometry);
         plane.rotateX( - Math.PI / 2);
@@ -146,7 +131,51 @@ function init() {
 
         //const gui = new GUI();
         //gui.add( controls, 'screenSpacePanning' );
+}
 
+function loadObj(name) {
+        loader.load(
+                // resource URL
+                'files/'+name+'.obj',
+                // called when resource is loaded
+                function ( object ) {
+                        scene.add( object );
+                        object.traverse( function ( child ) {
+                                if ( child.type =="Mesh" ) {
+                                        intersectionObjects.push(child);
+                                }
+                        } );
+                },
+                // called when loading is in progresses
+                function ( xhr ) {
+                        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                        console.log( 'An error happened' );
+                }
+        );
+}
+
+function loadCity() {
+        const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+        geometry.translate( 0, 0.5, 0 );
+        const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
+
+        for ( let i = 0; i < 500; i ++ ) {
+
+                const mesh = new THREE.Mesh( geometry, material );
+                mesh.position.x = Math.random() * 1600 - 800;
+                mesh.position.y = 0;
+                mesh.position.z = Math.random() * 1600 - 800;
+                mesh.scale.x = 20;
+                mesh.scale.y = Math.random() * 80 + 10;
+                mesh.scale.z = 20;
+                mesh.updateMatrix();
+                mesh.matrixAutoUpdate = false;
+                scene.add( mesh );
+                intersectionObjects.push(mesh);
+        }
 }
 
 function onWindowResize() {

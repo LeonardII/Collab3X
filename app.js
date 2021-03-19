@@ -43,7 +43,10 @@ function startExpress(connection) {
                     return databaseController.createTable(conn, 'points');
                 })
                 .then(function() {
-                    return databaseController.createTable(conn, 'projects');
+                    return databaseController.createTable(conn, 'projects', {primaryKey: "name"});
+                })
+                .then(function() {
+                    return databaseController.createTable(conn, 'positions', {primaryKey: "user"});
                 })
 				/*.then(function() {   turn this in to monitor all projects
 					return gameController.monitorAllPoints(conn);

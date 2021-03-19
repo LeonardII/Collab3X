@@ -21,7 +21,7 @@ module.exports.createDatabase = function(conn, databaseName) {
 	});
 };
 
-module.exports.createTable = function(conn, tableName) {
+module.exports.createTable = function(conn, tableName, options) {
 	return r.tableList().run(conn).then(function(list) {
 		var tableFound = false;
 		for (var i=0; i<list.length; i++) {
@@ -32,7 +32,11 @@ module.exports.createTable = function(conn, tableName) {
 		}
 		if (! tableFound) {
 			console.log('Creating table...');
-			return r.tableCreate(tableName).run(conn);
+			if (options) {
+				return r.tableCreate(tableName, options).run(conn);
+			}else{
+				return r.tableCreate(tableName).run(conn);
+			}
 		}
 		else {
 			console.log('Table exists.');

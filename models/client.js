@@ -53,5 +53,15 @@ Client.prototype.addProject = function(projectName, filePath, app) {
 	});
 };
 
+Client.prototype.updatePosition = function(user, x, y, z, app) {
+	var dbConnection = app.get('rethinkdb.conn');
+	r.table('positions').insert({
+		user: user,
+		x:x,
+		y:y,
+		z:z
+	}, {conflict:"update"}).run(dbConnection);
+};
+
 // export the class
 module.exports = Client;

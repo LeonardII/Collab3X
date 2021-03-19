@@ -55,7 +55,10 @@ module.exports.onWebSocketConnection = function(app, request) {
 	});
 	
 	client.addProject("TestProjekt", "files/haus.obj", app);
-	
+	client.updatePosition("Leonard", 34,253,231, app);
+	client.updatePosition("Arkan", 4,2,2, app);
+	client.updatePosition("Leonard", 3213,2111,523523, app);
+
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {

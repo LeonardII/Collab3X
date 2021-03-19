@@ -111,11 +111,6 @@ function init() {
 
         // world
         loadObj("haus");
-        const planeGeometry = new THREE.PlaneGeometry( 10000, 10000 );
-        const plane = new THREE.Mesh( planeGeometry);
-        plane.rotateX( - Math.PI / 2);
-        scene.add(plane);
-        intersectionObjects.push(plane);
 
         const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
         cursor = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial() );
@@ -186,6 +181,11 @@ function loadCity() {
                 scene.add( mesh );
                 intersectionObjects.push(mesh);
         }
+        const planeGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+        const plane = new THREE.Mesh( planeGeometry);
+        plane.rotateX( - Math.PI / 2);
+        scene.add(plane);
+        intersectionObjects.push(plane);
 }
 
 function onWindowResize() {

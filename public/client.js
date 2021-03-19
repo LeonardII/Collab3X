@@ -4,7 +4,7 @@ import {OrbitControls} from '/jsm/controls/OrbitControls.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 //import Stats from '/jsm/libs/stats.module.js';
 
-let camera, controls, scene, renderer, rayCaster, cursor, markers, intersectionObjects;
+let camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
 const mouse = new THREE.Vector2();
 let mouseMoved = false;
 
@@ -23,8 +23,15 @@ function connectToWebSocketServer() {
         };
         webSocket.onmessage = function (evt)  { 
             var message = JSON.parse(evt.data);
-            console.log(message);
-            addMarkerGeometry(message.x,message.y,message.z);
+            switch(message.t){
+                case "marker":
+                        addMarkerGeometry(message.data.x,message.data.y,message.data.z);
+                        break;
+                case "pos":
+                        movePlayer(message.data.user, message.data.x,message.data.y,message.data.z);
+                        break;
+            }
+            
         };
         webSocket.onclose = function() { 
             console.log('Websocket closed.');
@@ -62,6 +69,7 @@ function init() {
         rayCaster = new THREE.Raycaster();
         intersectionObjects = [];
         markers = [];
+        userCursors = [];
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xcccccc );
@@ -238,6 +246,21 @@ function addMarkerGeometry(x,y,z) {
         scene.add( marker );
 }
 
+function movePlayer(user, x, y, z) {
+        if(userCursors[user] == null){
+                const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
+                let cursorMesh = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial({color: 0xffffff}) );
+                scene.add( cursorMesh );
+                userCursors[user] = cursorMesh;
+        }else{
+                let m = userCursors[user];
+                m.position.x = x;
+                m.position.y = y;
+                m.position.z = z;
+        }
+
+}
+
 function render() {
 
         rayCaster.setFromCamera( mouse, camera );
@@ -245,7 +268,10 @@ function render() {
         const intersects = rayCaster.intersectObjects( intersectionObjects );
         if (intersects[0] != cursor){
                 if ( intersects.length > 0 ) {
-                        cursor.position.copy(intersects[ 0 ].point);
+                        let p = intersects[ 0 ].point;
+                        cursor.position.copy(p);
+                        var message = JSON.stringify({action:"userPosition", user:"David", x:p.x, y:p.y, z:p.z});
+                        webSocket.send(message);
                 } else {
 
                 }

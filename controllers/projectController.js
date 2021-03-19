@@ -44,7 +44,7 @@ module.exports.onWebSocketConnection = function(app, request) {
 	// call onMessageReceivedFromClient when a new message is received from the client
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-            console.log(new Date() + ' WebSocket server received message: ' + message.utf8Data);
+            //console.log(new Date() + ' WebSocket server received message: ' + message.utf8Data);
             onMessageReceivedFromClient(client, JSON.parse(message.utf8Data), app);
         }
     });
@@ -62,13 +62,18 @@ module.exports.onWebSocketConnection = function(app, request) {
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {
-    if (message.action == "monitorProject") {
-		console.log(new Date() + ' Request received to monitor project ' + message.project + '.');
-		client.monitorPointsByProject(message.project, app);
-	}
-	if (message.action == "addPoint") {
-		console.log(new Date() + ' Request received to add point ' + message.project + '.');
-		var point = {x: message.x, y:message.y, z:message.z};
-		client.addPointToProject(message.project, point, app);
+	switch(message.action){
+    	case "monitorProject":
+			console.log(new Date() + ' Request received to monitor project ' + message.project + '.');
+			client.monitorPointsByProject(message.project, app);
+			break;
+		case "addPoint":
+			console.log(new Date() + ' Request received to add point ' + message.project + '.');
+			var point = {x: message.x, y:message.y, z:message.z};
+			client.addPointToProject(message.project, point, app);
+			break;
+		case "userPosition":
+			client.updatePosition(message.user, message.x, message.y, message.z, app);
+			break;
 	}
 };

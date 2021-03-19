@@ -22,7 +22,7 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 				}
 				else {
 					// send the new point value to the client
-					var pointJson = JSON.stringify(row.new_val, null, 2);
+					var pointJson = JSON.stringify({t:"marker", data:row.new_val}, null, 2);
 					webSocketConnection.sendUTF(pointJson);
 					//console.log("db changed", pointJson)
 				}
@@ -31,6 +31,25 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 		.catch(function(err) {
 			console.log('Error monitoring project ' + projectId + ': ' + err);
 		});
+		r.table('positions').get("David").changes({includeInitial:true}).run(dbConnection,
+			function(err, cursor) {
+				// store cursor, so we can stop if necessary
+				this.monitoringProjectIdCursor = cursor;
+				cursor.each(function(err, row) {
+					if (err) {
+						throw err;
+					}
+					else {
+						// send the new point value to the client
+						var pointJson = JSON.stringify({t:"pos", data:row.new_val}, null, 2);
+						webSocketConnection.sendUTF(pointJson);
+						//console.log("db changed", pointJson)
+					}
+				});
+			})
+			.catch(function(err) {
+				console.log('Error monitoring project ' + projectId + ': ' + err);
+			});
 };
 
 Client.prototype.addPointToProject = function(project, point, app) {

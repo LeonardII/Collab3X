@@ -52,7 +52,10 @@ module.exports.onWebSocketConnection = function(app, request) {
 		// remove the client from the array on close
         clients.splice(clients.indexOf(client), 1);
         console.log(new Date() + ' WebSocket client ' + connection.remoteAddress + ' disconnected.');
-    });
+	});
+	
+	client.addProject("TestProjekt", "files/haus.obj", app);
+	
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {

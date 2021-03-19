@@ -1,6 +1,7 @@
 var projectController = require('../controllers/projectController');
 //var three = require('../public/client');
 var r = require('rethinkdb');
+var fs = require('fs');
 
 // when a client is first created it will monitor all games
 function Client(connection, app) {
@@ -39,6 +40,17 @@ Client.prototype.addPointToProject = function(project, point, app) {
 	}*/
     var dbConnection = app.get('rethinkdb.conn');
     r.table('points').insert([{x:point.x, y:point.y, z:point.z, project:project}]).run(dbConnection);
+};
+
+Client.prototype.addProject = function(projectName, filePath, app) {
+	var dbConnection = app.get('rethinkdb.conn');
+
+	fs.readFile(filePath, function(err, contents) {
+		r.table('projects').insert([{
+			name: projectName,
+			file: contents || ''
+		}]).run(dbConnection);
+	});
 };
 
 // export the class

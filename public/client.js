@@ -6,6 +6,7 @@ import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/three
 
 let camera, controls, scene, renderer, rayCaster, cursor, markers, intersectionObjects;
 const mouse = new THREE.Vector2();
+let mouseMoved = false;
 
 const markerGeometry = new THREE.SphereGeometry( 10, 20, 20);
 const loader = new OBJLoader();
@@ -78,8 +79,9 @@ function init() {
 
         controls = new OrbitControls( camera, renderer.domElement );
         
-        document.addEventListener( 'mousemove', onDocumentMouseMove );
+        document.addEventListener( 'pointermove', onDocumentMouseMove );
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
+        document.addEventListener( 'pointerup', onDocumentMouseUp );
 
         let dropArea = document.getElementById('drop-area');
         dropArea.addEventListener( 'drop', onFileDrop, false);
@@ -198,12 +200,20 @@ function animate() {
 
 function onDocumentMouseDown( event ) {
         event.preventDefault();
-        addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
-        addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
+        mouseMoved = false;
+}
+
+function onDocumentMouseUp( event ) {
+        event.preventDefault();
+        if (!mouseMoved){
+                addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
+                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
+        }
 }
 
 function onDocumentMouseMove( event ) {
         event.preventDefault();
+        mouseMoved = true;
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }

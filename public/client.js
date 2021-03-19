@@ -77,7 +77,12 @@ function init() {
         
         document.addEventListener( 'mousemove', onDocumentMouseMove );
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
-        document.addEventListener( 'drop', onDocumentDrop );
+
+        let dropArea = document.getElementById('drop-area');
+        dropArea.addEventListener( 'drop', onFileDrop, false);
+        dropArea.addEventListener( 'dragenter', function() {
+                console.log("drag enter");
+        }, false);
 
         //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
 
@@ -174,7 +179,8 @@ function onDocumentMouseMove( event ) {
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }
 
-function onDocumentDrop( event ) {
+function onFileDrop( event ) {
+        event.stopPropagation();
         event.preventDefault();
         console.log(dataTransfer.files.count(), " files received");
 }

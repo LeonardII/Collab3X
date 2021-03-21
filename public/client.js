@@ -208,12 +208,15 @@ function animate() {
 
 function onDocumentMouseDown( event ) {
         event.preventDefault();
-        mouseMoved = false;
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
+                mouseMoved = false;
+        }
 }
 
 function onDocumentMouseUp( event ) {
         event.preventDefault();
-        if (!mouseMoved){
+
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS" && !mouseMoved){
                 addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
                 addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
         }
@@ -222,8 +225,11 @@ function onDocumentMouseUp( event ) {
 function onDocumentMouseMove( event ) {
         event.preventDefault();
         mouseMoved = true;
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        //console.log(document.elementFromPoint(event.clientX, event.clientY).nodeName);
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        }
 }
 
 function onFileDrop( event ) {

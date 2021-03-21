@@ -225,7 +225,6 @@ function onDocumentMouseUp( event ) {
 function onDocumentMouseMove( event ) {
         event.preventDefault();
         mouseMoved = true;
-        //console.log(document.elementFromPoint(event.clientX, event.clientY).nodeName);
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
                 mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
                 mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;

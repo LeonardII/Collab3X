@@ -4,8 +4,9 @@ var r = require('rethinkdb');
 var fs = require('fs');
 
 // when a client is first created it will monitor all games
-function Client(connection, app) {
-    this.connection = connection;
+function Client(connection, userName, app) {
+	this.connection = connection;
+	this.userName = userName;
 }
 
 Client.prototype.monitorPointsByProject = function(project, app) {
@@ -31,7 +32,7 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 		.catch(function(err) {
 			console.log('Error monitoring project ' + projectId + ': ' + err);
 		});
-		r.table('positions').get("David").changes({includeInitial:true}).run(dbConnection,
+		r.table('positions').changes({includeInitial:true}).run(dbConnection,
 			function(err, cursor) {
 				// store cursor, so we can stop if necessary
 				this.monitoringProjectIdCursor = cursor;
@@ -72,10 +73,11 @@ Client.prototype.addProject = function(projectName, filePath, app) {
 	});
 };
 
-Client.prototype.updatePosition = function(user, x, y, z, app) {
+Client.prototype.updatePosition = function(x, y, z, app) {
 	var dbConnection = app.get('rethinkdb.conn');
+	
 	r.table('positions').insert({
-		user: user,
+		user: this.userName,
 		x:x,
 		y:y,
 		z:z

@@ -38,8 +38,9 @@ module.exports.getPoints = function(app) {
 
 module.exports.onWebSocketConnection = function(app, request) {
     console.log(new Date() + ' WebSocket connection accepted.');
-    var connection = request.accept(null, request.origin);
-	var client = new Client(connection, app);
+	var connection = request.accept(null, request.origin);
+	var userName = Math.random().toString(36).substring(7);
+	var client = new Client(connection, userName, app);
     clients.push(client);
 	// call onMessageReceivedFromClient when a new message is received from the client
     connection.on('message', function(message) {
@@ -55,9 +56,6 @@ module.exports.onWebSocketConnection = function(app, request) {
 	});
 	
 	client.addProject("TestProjekt", "files/haus.obj", app);
-	client.updatePosition("Leonard", 34,253,231, app);
-	client.updatePosition("Arkan", 4,2,2, app);
-	client.updatePosition("Leonard", 3213,2111,523523, app);
 
 };
 
@@ -73,7 +71,10 @@ var onMessageReceivedFromClient = function(client, message, app) {
 			client.addPointToProject(message.project, point, app);
 			break;
 		case "userPosition":
-			client.updatePosition(message.user, message.x, message.y, message.z, app);
+			console.log("message received from"+client.userName+message.x+ message.y)
+			client.updatePosition(message.x, message.y, message.z, app);
 			break;
+		case "addProject":
+			client.addProject(message.name, message.file, app);
 	}
 };

@@ -4,7 +4,7 @@ import {OrbitControls} from '/jsm/controls/OrbitControls.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 //import Stats from '/jsm/libs/stats.module.js';
 
-let camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
+let user, camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
 const mouse = new THREE.Vector2();
 let mouseMoved = false;
 
@@ -30,6 +30,9 @@ function connectToWebSocketServer() {
                 case "pos":
                         movePlayer(message.data.user, message.data.x,message.data.y,message.data.z);
                         break;
+                case "changeUserName":
+                        console.log(message);
+                        break;
             }
             
         };
@@ -54,6 +57,11 @@ function addPointToDataBase(x, y, z, id) {
     var message = JSON.stringify({action:"addPoint",x:x, y:y, z:z, project:id});
     console.log('Sending message to add point to Project ' + message);
     webSocket.send(message);
+}
+
+function uploadFile(file) {
+        console.log('Sending message to add Project ' + file);
+        webSocket.send(file);
 }
 
 connectToWebSocketServer();
@@ -91,11 +99,20 @@ function init() {
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
         document.addEventListener( 'pointerup', onDocumentMouseUp );
 
-        let dropArea = document.getElementById('drop-area');
-        dropArea.addEventListener( 'drop', onFileDrop, false);
+        /*let dropArea = document.getElementById('drop-area');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false)
+        })
+        function preventDefaults (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        }
+
+        dropArea.addEventListener( 'drop', onFileDrop);
         dropArea.addEventListener( 'dragenter', function() {
                 console.log("drag enter");
-        }, false);
+        }, false);*/
+
 
         //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
 
@@ -207,14 +224,14 @@ function animate() {
 }
 
 function onDocumentMouseDown( event ) {
-        event.preventDefault();
+        //event.preventDefault();
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
                 mouseMoved = false;
         }
 }
 
 function onDocumentMouseUp( event ) {
-        event.preventDefault();
+        //event.preventDefault();
 
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS" && !mouseMoved){
                 addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
@@ -223,7 +240,7 @@ function onDocumentMouseUp( event ) {
 }
 
 function onDocumentMouseMove( event ) {
-        event.preventDefault();
+        //event.preventDefault();
         mouseMoved = true;
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
                 mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -232,9 +249,10 @@ function onDocumentMouseMove( event ) {
 }
 
 function onFileDrop( event ) {
-        event.stopPropagation();
-        event.preventDefault();
-        console.log(dataTransfer.files.count(), " files received");
+        console.log("file drop");
+        console.log(event.dataTransfer.files, " files received");
+        let file = event.dataTransfer.files[0];
+        uploadFile(file)
 }
 
 function clearMarkers(){
@@ -253,6 +271,7 @@ function addMarkerGeometry(x,y,z) {
 
 function movePlayer(user, x, y, z) {
         if(userCursors[user] == null){
+                console.log("add player", user);
                 const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
                 let cursorMesh = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial({color: 0xffffff}) );
                 scene.add( cursorMesh );

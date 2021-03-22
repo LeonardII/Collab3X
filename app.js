@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const path = require('path');
 const { start } = require('repl');
+const bodyParser = require('body-parser');
 var databaseController = require('./controllers/dataBaseController');
 var projectController = require('./controllers/projectController');
 var WebSocketServer = require('websocket').server;
@@ -13,10 +14,18 @@ var webSocketServer;
 var config = require(__dirname+"/config.js");
 const r = require('rethinkdb')
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(express.static(__dirname + '/public'))
 app.use('/build/', express.static(path.join(__dirname, 'node_modules/three/build')));
 app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/jsm')));
 app.use('/files/', express.static(path.join(__dirname, 'files')));
+
+app.post('/username', function(req, res) {
+    var name = req.body.name;
+    res.status(204).send();
+});
 
 function startExpress(connection) {
   app._rdbConn = connection;

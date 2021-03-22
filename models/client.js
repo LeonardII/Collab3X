@@ -9,14 +9,51 @@ function Client(connection, userName, app) {
 	this.userName = userName;
 }
 
+Client.prototype.monitorProjects = function(app) {
+	var webSocketConnection = this.connection;
+	var dbConnection = app.get('rethinkdb.conn');
+	r.table('projects').changes({includeInitial:true}).run(dbConnection,
+		function(err, cursor) {
+			this.projectsCursor = cursor;
+			cursor.each(function(err, row) {
+				if (err) {
+					throw err;
+				}
+				else {
+					var pointJson = JSON.stringify({t:"addProject", data:row.new_val}, null, 2);
+					webSocketConnection.sendUTF(pointJson);
+					//console.log("db changed", pointJson)
+				}
+			});
+		})
+		.catch(function(err) {
+			console.log('Error monitoring project ' + projectId + ': ' + err);
+		});
+}
+
 Client.prototype.monitorPointsByProject = function(project, app) {
 	this.project = project;
 	var webSocketConnection = this.connection;
-    var dbConnection = app.get('rethinkdb.conn');
-	r.table('points').filter(r.row("project").eq("Stadt")).changes({includeInitial:true}).run(dbConnection,
+	var dbConnection = app.get('rethinkdb.conn');
+	
+	if(this.pointsCursor)
+		this.pointsCursor.close();
+	if(this.posCursor)
+		this.posCursor.close();
+
+	r.table('projects').get(project)
+	.run(dbConnection, function(err, result) {
+        if (err) throw err;
+		console.log(project, result);
+		let buffer = Buffer.from(result.file);
+		webSocketConnection.emit('projectFile',buffer);
+	});
+	
+
+	r.table('points').filter(r.row("project").eq("Haus")).changes({includeInitial:true}).run(dbConnection,
 		function(err, cursor) {
 			// store cursor, so we can stop if necessary
-			this.monitoringProjectIdCursor = cursor;
+			this.pointsCursor = cursor;
 			cursor.each(function(err, row) {
 				if (err) {
 					throw err;
@@ -32,25 +69,26 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 		.catch(function(err) {
 			console.log('Error monitoring project ' + projectId + ': ' + err);
 		});
-		r.table('positions').changes({includeInitial:true}).run(dbConnection,
-			function(err, cursor) {
-				// store cursor, so we can stop if necessary
-				this.monitoringProjectIdCursor = cursor;
-				cursor.each(function(err, row) {
-					if (err) {
-						throw err;
-					}
-					else {
-						// send the new point value to the client
-						var pointJson = JSON.stringify({t:"pos", data:row.new_val}, null, 2);
-						webSocketConnection.sendUTF(pointJson);
-						//console.log("db changed", pointJson)
-					}
-				});
-			})
-			.catch(function(err) {
-				console.log('Error monitoring project ' + projectId + ': ' + err);
+	r.table('positions').changes({includeInitial:true}).run(dbConnection,
+		function(err, cursor) {
+			// store cursor, so we can stop if necessary
+			this.posCursor = cursor;
+			cursor.each(function(err, row) {
+				if (err) {
+					throw err;
+				}
+				else {
+					// send the new point value to the client
+					var pointJson = JSON.stringify({t:"pos", data:row.new_val}, null, 2);
+					webSocketConnection.sendUTF(pointJson);
+					//console.log("db changed", pointJson)
+				}
 			});
+		})
+		.catch(function(err) {
+			console.log('Error monitoring project ' + projectId + ': ' + err);
+		});
+	
 };
 
 Client.prototype.addPointToProject = function(project, point, app) {
@@ -59,7 +97,7 @@ Client.prototype.addPointToProject = function(project, point, app) {
 		return;
 	}*/
     var dbConnection = app.get('rethinkdb.conn');
-    r.table('points').insert([{x:point.x, y:point.y, z:point.z, project:project}]).run(dbConnection);
+    r.table('points').insert([{x:point.x, y:point.y, z:point.z, project:project, user:this.userName}]).run(dbConnection);
 };
 
 Client.prototype.addProject = function(projectName, filePath, app) {
@@ -71,6 +109,21 @@ Client.prototype.addProject = function(projectName, filePath, app) {
 			file: contents || ''
 		}]).run(dbConnection);
 	});
+};
+
+Client.prototype.setUserName = function(userName) {
+	var webSocketConnection = this.connection;
+	var nameJson = JSON.stringify({t:"setUserName", data:{name: userName}}, null, 2);
+	webSocketConnection.sendUTF(nameJson);
+};
+
+Client.prototype.clearPoints = function(project, app) {
+	var dbConnection = app.get('rethinkdb.conn');
+	r.table('points').filter({"project": project}).delete().run(dbConnection);
+
+	var webSocketConnection = this.connection;
+	var clearJson = JSON.stringify({t:"clear", data:{project: project}}, null, 2);
+	webSocketConnection.sendUTF(clearJson);
 };
 
 Client.prototype.updatePosition = function(x, y, z, app) {
@@ -86,7 +139,7 @@ Client.prototype.updatePosition = function(x, y, z, app) {
 
 Client.prototype.updateNumberOfUser = function(user, x, y, z, app) {
 	var dbConnection = app.get('rethinkdb.conn');
-	r.table('projects').get(Pfeil).update(){
+	r.table('projects').get(Pfeil).update({
 		
 	}, {conflict:"update"}).run(dbConnection);
 };

@@ -128,44 +128,24 @@
             <thead>
               <tr>
                 <th>Project</th>
-                <th>Users</th>
+                <!--<th>Users</th>-->
               </tr>
             </thead>
-            <tbody id="testBody">
+            <tbody id="projectTable">
             </tbody>
         </table>
-        <div style="width:100%;height:50px;text-align: center; color:rgb(115, 214, 34); top:10px" class="ui">Tools</div>
-        <div id="mySidebar" class="sidebar">
-        <table id="myTable" class="table" style="display: table-header-group;">
-            <thead>
-              <tr>
-                <th>Pfiel</th>
-                <th>Bewertung</th>
-              </tr>
-            </thead>
-            <tbody id="testBody">
-            </tbody>
-        </table>
-        <form style="margin-right: 32px;" class="addProjectBar">
-            <input type="text" id="projectName" name="projectName" value="Name" class="addProjectBar">
-            <div id="drop-area" class="addProjectBar">
-                <a ref="#" class="addProjectBar" style="background-color: gray; width: 150px;">drop here</a>
-            </div>
-            <button class="openbtn ui addProjectBar" style="width: 40px;">+</button>
-        </form>
+        
 
-        <form style="margin-left: 32px;" class="addProjectBar">
+        <!--<form style="margin-left: 32px;" class="addProjectBar">
             <input type="text" id="projectName" name="projectName" value="Name" class="addProjectBar">
             <div id="drop-area" class="addProjectBar">
                 <a ref="#" class="addProjectBar" style="background-color: gray; width: 150px;">drop here</a>
             </div>
             <button class="openbtn ui addProjectBar" style="width: 40px;">+</button>
-        </form>
+        </form>-->
+        <button id="clearButton" class="openbtn ui">clear</button>
+
     </div> 
-
-    <div id="main">
-        <button id="sidebarButton" class="openbtn ui" style="margin: 80px; padding:10px 15px;" onclick="Leonardarkan()">☰</button>
-    </div>
       
     <div id="main">
         <button id="sidebarButton" class="openbtn ui" style="margin: 10px; padding:10px 15px;" onclick="triggerNav()">☰</button>
@@ -186,26 +166,6 @@
                 navOpen = true;
             }
         }
-        
-        const items1 = [
-            { project: "3d model", numberUsers: 2 },
-            { project: "Stadt", numberUsers: 0 },
-                       ];
-        const items1 = [
-            { project: "Pfiel", Users: 0},
-            { project: "Bewertung", Users: 0 },
-                       ];               
-        function loadTableData(items) {
-            const table = document.getElementById("testBody");
-            items.forEach( item => {
-            let row = table.insertRow();
-            let project = row.insertCell(0);
-            project.innerHTML = item.project;
-            let numberUsers = row.insertCell(1);
-            numberUsers.innerHTML = item.numberUsers;
-            });
-        }
-        loadTableData(items1);
     </script>
 </body>
 

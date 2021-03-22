@@ -39,9 +39,14 @@ module.exports.getPoints = function(app) {
 module.exports.onWebSocketConnection = function(app, request) {
     console.log(new Date() + ' WebSocket connection accepted.');
 	var connection = request.accept(null, request.origin);
-	var userName = Math.random().toString(36).substring(7);
+	var userName = Math.random().toString(16).substring(2,8);
 	var client = new Client(connection, userName, app);
-    clients.push(client);
+	clients.push(client);
+	client.setUserName(userName);
+	
+	client.addProject("Haus", "files/haus.obj", app);
+	
+	client.monitorProjects(app);
 	// call onMessageReceivedFromClient when a new message is received from the client
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
@@ -55,8 +60,6 @@ module.exports.onWebSocketConnection = function(app, request) {
         console.log(new Date() + ' WebSocket client ' + connection.remoteAddress + ' disconnected.');
 	});
 	
-	client.addProject("TestProjekt", "files/haus.obj", app);
-
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {
@@ -71,13 +74,14 @@ var onMessageReceivedFromClient = function(client, message, app) {
 			client.addPointToProject(message.project, point, app);
 			break;
 		case "userPosition":
-			console.log("message received from"+client.userName+message.x+ message.y)
 			client.updatePosition(message.x, message.y, message.z, app);
 			break;
 		case "addProject":
 			client.addProject(message.name, message.file, app);
 			break;
-	    case "userNumberUpdate":
-			break;	
+		case "clearPoints":
+			console.log("clearpoints in "+message.project);
+			client.clearPoints(message.project, app);
+			break;
 	}
 };

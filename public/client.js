@@ -4,11 +4,11 @@ import {OrbitControls} from '/jsm/controls/OrbitControls.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 //import Stats from '/jsm/libs/stats.module.js';
 
-let user, camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
+let userName, camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
 const mouse = new THREE.Vector2();
 let mouseMoved = false;
 
-const markerGeometry = new THREE.SphereGeometry( 10, 20, 20);
+const markerGeometry = new THREE.SphereGeometry( 7, 20, 20);
 const loader = new OBJLoader();
 
 //________________Websocket stuff______________________
@@ -19,19 +19,39 @@ function connectToWebSocketServer() {
     if ("WebSocket" in window) {
         webSocket = new WebSocket('ws://' + window.location.href.split('/')[2]);
         webSocket.onopen = function() {
-            monitorProject("Stadt");
+            monitorProject("Haus");
         };
         webSocket.onmessage = function (evt)  { 
             var message = JSON.parse(evt.data);
             switch(message.t){
                 case "marker":
-                        addMarkerGeometry(message.data.x,message.data.y,message.data.z);
+                        let color = new THREE.Color('#'+message.data.user);
+                        addMarkerGeometry(message.data.x,message.data.y,message.data.z, color);
                         break;
                 case "pos":
                         movePlayer(message.data.user, message.data.x,message.data.y,message.data.z);
                         break;
+                case "setUserName":
+                        userName = message.data.name;
+                        cursor.material.color = new THREE.Color('#'+userName);
+                        console.log("set username to " + userName + message+message.data.name);
+                        break;
                 case "changeUserName":
                         console.log(message);
+                        break;
+                case "clear":
+                        //if message.project == project
+                        clearMarkers();
+                        break;
+                case "addProject":
+                        if (message.data.name == null){
+                                console.log("Project deleted");
+                                break;
+                        }
+                        addProject(message.data.name);
+                        break;
+                case "project":
+                        console.log(message.data);
                         break;
             }
             
@@ -49,8 +69,7 @@ function monitorProject(id) {
     //load points
     projectId = id;
     var message = JSON.stringify({action:"monitorProject",project:projectId});
-    console.log('Sending message to monitor game ' + projectId + ': ' + message);
-    webSocket.send("mehr benutzer")
+    console.log('Sending message to monitor project ' + projectId + ': ' + message);
     webSocket.send(message);
 }
 
@@ -100,6 +119,8 @@ function init() {
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
         document.addEventListener( 'pointerup', onDocumentMouseUp );
 
+        document.getElementById('clearButton').onclick = clearAllPointsForProject;
+
         /*let dropArea = document.getElementById('drop-area');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false)
@@ -131,7 +152,7 @@ function init() {
         loadObj("haus");
 
         const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
-        cursor = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial() );
+        cursor = new THREE.Mesh( cursorGeometry, new THREE.MeshStandardMaterial({color: 0x111111}) );
         scene.add( cursor );
 
         // lights
@@ -235,8 +256,9 @@ function onDocumentMouseUp( event ) {
         //event.preventDefault();
 
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS" && !mouseMoved){
-                addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
-                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
+                let color = new THREE.Color('#'+userName);
+                addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z, color);
+                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Haus");
         }
 }
 
@@ -256,25 +278,35 @@ function onFileDrop( event ) {
         uploadFile(file)
 }
 
-function clearMarkers(){
-        for(marker in markers) {
-                scene.remove(marker);
-        }
-        markers.clear();
+function clearAllPointsForProject() {
+        var message = JSON.stringify({action:"clearPoints", project: "Hasu"});
+        webSocket.send(message);
+        console.log(message);
 }
 
-function addMarkerGeometry(x,y,z) {
-        let marker = new THREE.Mesh( markerGeometry, new THREE.MeshNormalMaterial() );
+function clearMarkers(){
+        for(var i = 0; i < markers.length; i++) {
+                scene.remove(markers[i]);
+        }
+        markers = [];
+}
+
+function addMarkerGeometry(x,y,z, color) {
+        let marker = new THREE.Mesh( markerGeometry, new THREE.MeshStandardMaterial({color: color}) );
         marker.position.set(x,y,z);
         markers.push(marker);
         scene.add( marker );
 }
 
 function movePlayer(user, x, y, z) {
+        if(userName == user) {
+                return;
+        }
         if(userCursors[user] == null){
                 console.log("add player", user);
                 const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
-                let cursorMesh = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial({color: 0xffffff}) );
+                let color = new THREE.Color('#'+user);
+                let cursorMesh = new THREE.Mesh( cursorGeometry, new THREE.MeshStandardMaterial({color: color}) );
                 scene.add( cursorMesh );
                 userCursors[user] = cursorMesh;
         }else{
@@ -283,7 +315,6 @@ function movePlayer(user, x, y, z) {
                 m.position.y = y;
                 m.position.z = z;
         }
-
 }
 
 function render() {
@@ -295,7 +326,7 @@ function render() {
                 if ( intersects.length > 0 ) {
                         let p = intersects[ 0 ].point;
                         cursor.position.copy(p);
-                        var message = JSON.stringify({action:"userPosition", user:"David", x:p.x, y:p.y, z:p.z});
+                        var message = JSON.stringify({action:"userPosition", user:userName, x:p.x, y:p.y, z:p.z});
                         webSocket.send(message);
                 } else {
 
@@ -303,4 +334,16 @@ function render() {
         }
 
         renderer.render( scene, camera );
+}
+
+function addProject(projectName) {
+        console.log("addProject"+projectName);
+        let table = document.getElementById('projectTable');
+        let row = table.insertRow();
+        let project = row.insertCell(0);
+        project.innerHTML = projectName;
+        project.onclick = function(event){
+                console.log("clicked", event.toElement.innerHTML);
+                monitorProject(event.toElement.innerHTML);
+        };
 }

@@ -84,5 +84,12 @@ Client.prototype.updatePosition = function(x, y, z, app) {
 	}, {conflict:"update"}).run(dbConnection);
 };
 
+Client.prototype.updateNumberOfUser = function(user, x, y, z, app) {
+	var dbConnection = app.get('rethinkdb.conn');
+	r.table('projects').get(Pfeil).update(){
+		
+	}, {conflict:"update"}).run(dbConnection);
+};
+
 // export the class
 module.exports = Client;

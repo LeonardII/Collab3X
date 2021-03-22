@@ -57,6 +57,13 @@ function startExpress(connection) {
                 .then(function() {
                     return databaseController.createTable(conn, 'positions', {primaryKey: "user"});
                 })
+                .then(function() {
+                    return databaseController.createTable(conn, "Pfeil", {primaryKey: "Pfeil"});
+                })
+                .then(function() {
+                    return databaseController.createTable(conn, "Bewertung", {primaryKey: "bewertung"});
+                })
+
 				/*.then(function() {   turn this in to monitor all projects
 					return gameController.monitorAllPoints(conn);
 				})

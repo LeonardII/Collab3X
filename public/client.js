@@ -50,6 +50,7 @@ function monitorProject(id) {
     projectId = id;
     var message = JSON.stringify({action:"monitorProject",project:projectId});
     console.log('Sending message to monitor game ' + projectId + ': ' + message);
+    webSocket.send("mehr benutzer")
     webSocket.send(message);
 }
 

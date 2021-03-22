@@ -76,5 +76,8 @@ var onMessageReceivedFromClient = function(client, message, app) {
 			break;
 		case "addProject":
 			client.addProject(message.name, message.file, app);
+			break;
+	    case "userNumberUpdate":
+			break;	
 	}
 };

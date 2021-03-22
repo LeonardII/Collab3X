@@ -44,7 +44,7 @@ module.exports.onWebSocketConnection = function(app, request) {
 	// call onMessageReceivedFromClient when a new message is received from the client
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
-            console.log(new Date() + ' WebSocket server received message: ' + message.utf8Data);
+            //console.log(new Date() + ' WebSocket server received message: ' + message.utf8Data);
             onMessageReceivedFromClient(client, JSON.parse(message.utf8Data), app);
         }
     });
@@ -52,17 +52,29 @@ module.exports.onWebSocketConnection = function(app, request) {
 		// remove the client from the array on close
         clients.splice(clients.indexOf(client), 1);
         console.log(new Date() + ' WebSocket client ' + connection.remoteAddress + ' disconnected.');
-    });
+	});
+	
+	client.addProject("TestProjekt", "files/haus.obj", app);
+	client.updatePosition("Leonard", 34,253,231, app);
+	client.updatePosition("Arkan", 4,2,2, app);
+	client.updatePosition("Leonard", 3213,2111,523523, app);
+
 };
 
 var onMessageReceivedFromClient = function(client, message, app) {
-    if (message.action == "monitorProject") {
-		console.log(new Date() + ' Request received to monitor project ' + message.project + '.');
-		client.monitorPointsByProject(message.project, app);
-	}
-	if (message.action == "addPoint") {
-		console.log(new Date() + ' Request received to add point ' + message.project + '.');
-		var point = {x: message.x, y:message.y, z:message.z};
-		client.addPointToProject(message.project, point, app);
+	switch(message.action){
+    	case "monitorProject":
+			console.log(new Date() + ' Request received to monitor project ' + message.project + '.');
+			client.monitorPointsByProject(message.project, app);
+			break;
+		case "addPoint":
+			console.log(new Date() + ' Request received to add point ' + message.project + '.');
+			var point = {x: message.x, y:message.y, z:message.z};
+			client.addPointToProject(message.project, point, app);
+			break;
+		case "userPosition":
+			client.updatePosition(message.user, message.x, message.y, message.z, app);
+			break;
+	    case "userNumberUpdate"		
 	}
 };

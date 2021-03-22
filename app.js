@@ -16,6 +16,7 @@ const r = require('rethinkdb')
 app.use(express.static(__dirname + '/public'))
 app.use('/build/', express.static(path.join(__dirname, 'node_modules/three/build')));
 app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/jsm')));
+app.use('/files/', express.static(path.join(__dirname, 'files')));
 
 function startExpress(connection) {
   app._rdbConn = connection;
@@ -41,6 +42,19 @@ function startExpress(connection) {
                 .then(function() {
                     return databaseController.createTable(conn, 'points');
                 })
+                .then(function() {
+                    return databaseController.createTable(conn, 'projects', {primaryKey: "name"});
+                })
+                .then(function() {
+                    return databaseController.createTable(conn, 'positions', {primaryKey: "user"});
+                })
+                .then(function() {
+                    return databaseController.createTable(conn, "Pfeil", {primaryKey: "Pfeil"});
+                })
+                .then(function() {
+                    return databaseController.createTable(conn, "Bewertung", {primaryKey: "bewertung"});
+                })
+
 				/*.then(function() {   turn this in to monitor all projects
 					return gameController.monitorAllPoints(conn);
 				})

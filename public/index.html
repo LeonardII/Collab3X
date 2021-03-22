@@ -6,13 +6,192 @@
             overflow: hidden;
             margin: 0px;
         }
+
+        .ui {
+            position: absolute;
+        }
+
+        button {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            outline: none;
+            border: 0;
+            vertical-align: middle;
+            text-decoration: none;
+            font-size: inherit;
+            font-family: inherit;
+            background-color: darkgray;
+        }
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
+        .sidebar th {
+            color:white;
+        }
+
+        .sidebar td {
+            width: 150px;
+        }
+        .sidebar th {
+            text-align: left;
+            width: 150px;
+        }
+        .sidebar tr {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.2s;
+        }
+
+        .sidebar tr:hover {
+            color: #f1f1f1;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            font-size: 25px;
+            color: #f1f1f1;
+            display: block;
+            transition: 0.2s;
+        }
+
+        .sidebar a:hover {
+            color: #818181;
+        }
+
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #111;
+            color: white;
+            border: none;
+        }
+
+        .openbtn:hover {
+            background-color: #444;
+        }
+
+        .addProjectBar {
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            float: left;
+        }
+        
+        #projectName {
+            width:110px;
+            padding: 0px;
+            border-width: 0px;
+        }
+
+        #main {
+            transition: margin-left .5s;
+        }
     </style>
 
-<script type="module" src="client.js" onload="connectToWebSocketServer()"></script>
+<script type="module" src="client.js"></script>
 </script>
 </head>
 
 <body>
+    <div style="width:100%;height:50px;text-align: center; color:white; top:10px" class="ui">Project name</div>
+    <div id="mySidebar" class="sidebar">
+        <table id="myTable" class="table" style="display: table-header-group;">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Users</th>
+              </tr>
+            </thead>
+            <tbody id="testBody">
+            </tbody>
+        </table>
+        <div style="width:100%;height:50px;text-align: center; color:rgb(115, 214, 34); top:10px" class="ui">Tools</div>
+        <div id="mySidebar" class="sidebar">
+        <table id="myTable" class="table" style="display: table-header-group;">
+            <thead>
+              <tr>
+                <th>Pfiel</th>
+                <th>Bewertung</th>
+              </tr>
+            </thead>
+            <tbody id="testBody">
+            </tbody>
+        </table>
+        <form style="margin-right: 32px;" class="addProjectBar">
+            <input type="text" id="projectName" name="projectName" value="Name" class="addProjectBar">
+            <div id="drop-area" class="addProjectBar">
+                <a ref="#" class="addProjectBar" style="background-color: gray; width: 150px;">drop here</a>
+            </div>
+            <button class="openbtn ui addProjectBar" style="width: 40px;">+</button>
+        </form>
+
+        <form style="margin-left: 32px;" class="addProjectBar">
+            <input type="text" id="projectName" name="projectName" value="Name" class="addProjectBar">
+            <div id="drop-area" class="addProjectBar">
+                <a ref="#" class="addProjectBar" style="background-color: gray; width: 150px;">drop here</a>
+            </div>
+            <button class="openbtn ui addProjectBar" style="width: 40px;">+</button>
+        </form>
+    </div> 
+
+    <div id="main">
+        <button id="sidebarButton" class="openbtn ui" style="margin: 80px; padding:10px 15px;" onclick="Leonardarkan()">☰</button>
+    </div>
+      
+    <div id="main">
+        <button id="sidebarButton" class="openbtn ui" style="margin: 10px; padding:10px 15px;" onclick="triggerNav()">☰</button>
+    </div>
+  
+    <script>
+        var navOpen = false;
+        function triggerNav() {
+            if (navOpen){
+                document.getElementById("mySidebar").style.width = "0";
+                document.getElementById("main").style.marginLeft= "0";
+                document.getElementById("sidebarButton").innerHTML = "☰";
+                navOpen = false;
+            }else{
+                document.getElementById("mySidebar").style.width = "350px";
+                document.getElementById("main").style.marginLeft = "350px";
+                document.getElementById("sidebarButton").innerHTML = "×";
+                navOpen = true;
+            }
+        }
+        
+        const items1 = [
+            { project: "3d model", numberUsers: 2 },
+            { project: "Stadt", numberUsers: 0 },
+                       ];
+        const items1 = [
+            { project: "Pfiel", Users: 0},
+            { project: "Bewertung", Users: 0 },
+                       ];               
+        function loadTableData(items) {
+            const table = document.getElementById("testBody");
+            items.forEach( item => {
+            let row = table.insertRow();
+            let project = row.insertCell(0);
+            project.innerHTML = item.project;
+            let numberUsers = row.insertCell(1);
+            numberUsers.innerHTML = item.numberUsers;
+            });
+        }
+        loadTableData(items1);
+    </script>
 </body>
 
 </html> 

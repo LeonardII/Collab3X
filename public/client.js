@@ -1,11 +1,15 @@
+
 import * as THREE from '/build/three.module.js';
 import {OrbitControls} from '/jsm/controls/OrbitControls.js';
+import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 //import Stats from '/jsm/libs/stats.module.js';
 
-let camera, controls, scene, renderer, rayCaster, cursor, markers, intersectionObjects;
+let camera, controls, scene, renderer, rayCaster, cursor, markers, userCursors, intersectionObjects;
 const mouse = new THREE.Vector2();
+let mouseMoved = false;
 
 const markerGeometry = new THREE.SphereGeometry( 10, 20, 20);
+const loader = new OBJLoader();
 
 //________________Websocket stuff______________________
 var webSocket;
@@ -19,8 +23,15 @@ function connectToWebSocketServer() {
         };
         webSocket.onmessage = function (evt)  { 
             var message = JSON.parse(evt.data);
-            console.log(message);
-            addMarkerGeometry(message.x,message.y,message.z);
+            switch(message.t){
+                case "marker":
+                        addMarkerGeometry(message.data.x,message.data.y,message.data.z);
+                        break;
+                case "pos":
+                        movePlayer(message.data.user, message.data.x,message.data.y,message.data.z);
+                        break;
+            }
+            
         };
         webSocket.onclose = function() { 
             console.log('Websocket closed.');
@@ -36,6 +47,7 @@ function monitorProject(id) {
     projectId = id;
     var message = JSON.stringify({action:"monitorProject",project:projectId});
     console.log('Sending message to monitor game ' + projectId + ': ' + message);
+    webSocket.send("mehr benutzer")
     webSocket.send(message);
 }
 
@@ -58,6 +70,7 @@ function init() {
         rayCaster = new THREE.Raycaster();
         intersectionObjects = [];
         markers = [];
+        userCursors = [];
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xcccccc );
@@ -75,8 +88,15 @@ function init() {
 
         controls = new OrbitControls( camera, renderer.domElement );
         
-        document.addEventListener( 'mousemove', onDocumentMouseMove );
+        document.addEventListener( 'pointermove', onDocumentMouseMove );
         document.addEventListener( 'pointerdown', onDocumentMouseDown );
+        document.addEventListener( 'pointerup', onDocumentMouseUp );
+
+        let dropArea = document.getElementById('drop-area');
+        dropArea.addEventListener( 'drop', onFileDrop, false);
+        dropArea.addEventListener( 'dragenter', function() {
+                console.log("drag enter");
+        }, false);
 
         //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
 
@@ -91,30 +111,7 @@ function init() {
         controls.maxPolarAngle = Math.PI / 2;
 
         // world
-
-        const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-        geometry.translate( 0, 0.5, 0 );
-        const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
-
-        for ( let i = 0; i < 500; i ++ ) {
-
-                const mesh = new THREE.Mesh( geometry, material );
-                mesh.position.x = Math.random() * 1600 - 800;
-                mesh.position.y = 0;
-                mesh.position.z = Math.random() * 1600 - 800;
-                mesh.scale.x = 20;
-                mesh.scale.y = Math.random() * 80 + 10;
-                mesh.scale.z = 20;
-                mesh.updateMatrix();
-                mesh.matrixAutoUpdate = false;
-                scene.add( mesh );
-                intersectionObjects.push(mesh);
-        }
-        const planeGeometry = new THREE.PlaneGeometry( 10000, 10000 );
-        const plane = new THREE.Mesh( planeGeometry);
-        plane.rotateX( - Math.PI / 2);
-        scene.add(plane);
-        intersectionObjects.push(plane);
+        loadObj("haus");
 
         const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
         cursor = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial() );
@@ -140,7 +137,56 @@ function init() {
 
         //const gui = new GUI();
         //gui.add( controls, 'screenSpacePanning' );
+}
 
+function loadObj(name) {
+        loader.load(
+                // resource URL
+                'files/'+name+'.obj',
+                // called when resource is loaded
+                function ( object ) {
+                        scene.add( object );
+                        object.traverse( function ( child ) {
+                                if ( child.type =="Mesh" ) {
+                                        intersectionObjects.push(child);
+                                }
+                        } );
+                },
+                // called when loading is in progresses
+                function ( xhr ) {
+                        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                        console.log( 'An error happened' );
+                }
+        );
+}
+
+function loadCity() {
+        const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+        geometry.translate( 0, 0.5, 0 );
+        const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
+
+        for ( let i = 0; i < 500; i ++ ) {
+
+                const mesh = new THREE.Mesh( geometry, material );
+                mesh.position.x = Math.random() * 1600 - 800;
+                mesh.position.y = 0;
+                mesh.position.z = Math.random() * 1600 - 800;
+                mesh.scale.x = 20;
+                mesh.scale.y = Math.random() * 80 + 10;
+                mesh.scale.z = 20;
+                mesh.updateMatrix();
+                mesh.matrixAutoUpdate = false;
+                scene.add( mesh );
+                intersectionObjects.push(mesh);
+        }
+        const planeGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+        const plane = new THREE.Mesh( planeGeometry);
+        plane.rotateX( - Math.PI / 2);
+        scene.add(plane);
+        intersectionObjects.push(plane);
 }
 
 function onWindowResize() {
@@ -163,14 +209,33 @@ function animate() {
 
 function onDocumentMouseDown( event ) {
         event.preventDefault();
-        addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
-        addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
+                mouseMoved = false;
+        }
+}
+
+function onDocumentMouseUp( event ) {
+        event.preventDefault();
+
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS" && !mouseMoved){
+                addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z);
+                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Stadt");
+        }
 }
 
 function onDocumentMouseMove( event ) {
         event.preventDefault();
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        mouseMoved = true;
+        if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS") {
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        }
+}
+
+function onFileDrop( event ) {
+        event.stopPropagation();
+        event.preventDefault();
+        console.log(dataTransfer.files.count(), " files received");
 }
 
 function clearMarkers(){
@@ -187,6 +252,21 @@ function addMarkerGeometry(x,y,z) {
         scene.add( marker );
 }
 
+function movePlayer(user, x, y, z) {
+        if(userCursors[user] == null){
+                const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
+                let cursorMesh = new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial({color: 0xffffff}) );
+                scene.add( cursorMesh );
+                userCursors[user] = cursorMesh;
+        }else{
+                let m = userCursors[user];
+                m.position.x = x;
+                m.position.y = y;
+                m.position.z = z;
+        }
+
+}
+
 function render() {
 
         rayCaster.setFromCamera( mouse, camera );
@@ -194,7 +274,10 @@ function render() {
         const intersects = rayCaster.intersectObjects( intersectionObjects );
         if (intersects[0] != cursor){
                 if ( intersects.length > 0 ) {
-                        cursor.position.copy(intersects[ 0 ].point);
+                        let p = intersects[ 0 ].point;
+                        cursor.position.copy(p);
+                        var message = JSON.stringify({action:"userPosition", user:"David", x:p.x, y:p.y, z:p.z});
+                        webSocket.send(message);
                 } else {
 
                 }

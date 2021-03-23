@@ -44,8 +44,10 @@ module.exports.onWebSocketConnection = function(app, request) {
 	clients.push(client);
 	client.setUserName(userName);
 	
-	client.addProject("Haus", "files/haus.obj", app);
-	
+	//client.addProject("ModernesHaus", "files/ModernesHaus.obj", app);
+	//client.addProject("Jeep", "files/Jeep.obj", app);
+	//client.addProject("Banana", "files/Banana.obj", app);
+
 	client.monitorProjects(app);
 	// call onMessageReceivedFromClient when a new message is received from the client
     connection.on('message', function(message) {

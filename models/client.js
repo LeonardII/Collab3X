@@ -45,12 +45,15 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 	.run(dbConnection, function(err, result) {
         if (err) throw err;
 		console.log(project, result);
-		let buffer = Buffer.from(result.file);
-		webSocketConnection.emit('projectFile',buffer);
+		//fs.writeFile("files/"+project+".obj",result.file, function(){
+			console.log("callback");
+			webSocketConnection.sendUTF(JSON.stringify({t: "loadProject", data:{project:project}}));
+		//});
+		
 	});
 	
 
-	r.table('points').filter(r.row("project").eq("Haus")).changes({includeInitial:true}).run(dbConnection,
+	r.table('points').filter(r.row("project").eq(project)).changes({includeInitial:true}).run(dbConnection,
 		function(err, cursor) {
 			// store cursor, so we can stop if necessary
 			this.pointsCursor = cursor;
@@ -60,8 +63,13 @@ Client.prototype.monitorPointsByProject = function(project, app) {
 				}
 				else {
 					// send the new point value to the client
-					var pointJson = JSON.stringify({t:"marker", data:row.new_val}, null, 2);
-					webSocketConnection.sendUTF(pointJson);
+					if (row.new_val != null){
+						console.log("marker added");
+						var pointJson = JSON.stringify({t:"marker", data:row.new_val}, null, 2);
+						webSocketConnection.sendUTF(pointJson);
+					}else{
+						console.log("marker deleted");
+					}
 					//console.log("db changed", pointJson)
 				}
 			});
@@ -102,7 +110,7 @@ Client.prototype.addPointToProject = function(project, point, app) {
 
 Client.prototype.addProject = function(projectName, filePath, app) {
 	var dbConnection = app.get('rethinkdb.conn');
-
+	console.log("add project to db",projectName, filePath);
 	fs.readFile(filePath, function(err, contents) {
 		r.table('projects').insert([{
 			name: projectName,

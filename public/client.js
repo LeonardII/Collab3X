@@ -50,8 +50,8 @@ function connectToWebSocketServer() {
                         }
                         addProject(message.data.name);
                         break;
-                case "project":
-                        console.log(message.data);
+                case "loadProject":
+                        loadProject(message.data.project);
                         break;
             }
             
@@ -64,6 +64,15 @@ function connectToWebSocketServer() {
         alert("WebSocket not supported browser.");
     }
 }
+
+function loadProject(projectName){
+        while(scene.children.length > 0){ 
+                scene.remove(scene.children[0]); 
+        }
+        initScene();
+        loadObj(projectName);
+}
+
 function monitorProject(id) {
     //load 3d
     //load points
@@ -95,20 +104,16 @@ animate();
 function init() {
 
         rayCaster = new THREE.Raycaster();
-        intersectionObjects = [];
-        markers = [];
-        userCursors = [];
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xcccccc );
-        scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+        initScene();
 
         renderer = new THREE.WebGLRenderer( { antialias: true } );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
-        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
         camera.position.set( 400, 200, 0 );
 
         // controls
@@ -144,29 +149,13 @@ function init() {
         controls.screenSpacePanning = false;
 
         controls.minDistance = 100;
-        controls.maxDistance = 500;
+        controls.maxDistance = 5000;
 
         controls.maxPolarAngle = Math.PI / 2;
 
-        // world
-        loadObj("haus");
-
         const cursorGeometry = new THREE.SphereGeometry( 5, 20, 20);
         cursor = new THREE.Mesh( cursorGeometry, new THREE.MeshStandardMaterial({color: 0x111111}) );
-        scene.add( cursor );
-
-        // lights
-
-        const dirLight1 = new THREE.DirectionalLight( 0xffffff );
-        dirLight1.position.set( 1, 1, 1 );
-        scene.add( dirLight1 );
-
-        const dirLight2 = new THREE.DirectionalLight( 0x002288 );
-        dirLight2.position.set( - 1, - 1, - 1 );
-        scene.add( dirLight2 );
-
-        const ambientLight = new THREE.AmbientLight( 0x222222 );
-        scene.add( ambientLight );
+        
 
         //
 
@@ -175,6 +164,28 @@ function init() {
 
         //const gui = new GUI();
         //gui.add( controls, 'screenSpacePanning' );
+}
+
+function initScene(){
+        intersectionObjects = [];
+        markers = [];
+        userCursors = [];
+        
+        scene.background = new THREE.Color( 0xcccccc );
+        scene.fog = new THREE.FogExp2( 0xcccccc, 0.0002 );
+
+        scene.add( cursor );
+        // lights
+        const dirLight1 = new THREE.DirectionalLight( 0xffffff );
+        dirLight1.position.set( 900, 1000, 700 );
+        scene.add( dirLight1 );
+
+        const dirLight2 = new THREE.DirectionalLight( 0x002288 );
+        dirLight2.position.set( - 800, 1000, - 1000 );
+        scene.add( dirLight2 );
+
+        const light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 0.3 );
+        scene.add( light );
 }
 
 function loadObj(name) {
@@ -258,7 +269,7 @@ function onDocumentMouseUp( event ) {
         if (document.elementFromPoint(event.clientX, event.clientY).nodeName == "CANVAS" && !mouseMoved){
                 let color = new THREE.Color('#'+userName);
                 addMarkerGeometry(cursor.position.x, cursor.position.y, cursor.position.z, color);
-                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, "Haus");
+                addPointToDataBase(cursor.position.x, cursor.position.y, cursor.position.z, projectId);
         }
 }
 
@@ -279,7 +290,7 @@ function onFileDrop( event ) {
 }
 
 function clearAllPointsForProject() {
-        var message = JSON.stringify({action:"clearPoints", project: "Hasu"});
+        var message = JSON.stringify({action:"clearPoints", project: projectId});
         webSocket.send(message);
         console.log(message);
 }
@@ -292,6 +303,7 @@ function clearMarkers(){
 }
 
 function addMarkerGeometry(x,y,z, color) {
+        console.log("addMarker");
         let marker = new THREE.Mesh( markerGeometry, new THREE.MeshStandardMaterial({color: color}) );
         marker.position.set(x,y,z);
         markers.push(marker);
